@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """
-State view
+City class
 """
 from api.v1.views import app_views
 from flask import abort, jsonify, make_response, request
@@ -12,26 +12,26 @@ from models.state import State
 @app_views.route('/states/<state_id>/cities', methods=['GET'],
                  strict_slashes=False)
 def get_cities_by_state(state_id=None):
-    """Get state object"""
+    """Get city object"""
     state_by_id = storage.get(State, state_id)
     if state_by_id is None:
         abort(404, 'Not found')
     cities = [city.to_dict() for city in state_by_id.cities]
-    return jsonify(cities)
+    return make_response(jsonify(cities))
 
 
 @app_views.route('cities/<city_id>', methods=['GET'], strict_slashes=False)
 def get_cities(city_id=None):
-    """Get state object based on ID"""
+    """Get city object based on ID"""
     city = storage.get(City, city_id)
     if city is None:
         abort(404, 'Not found')
-    return jsonify(city.to_dict())
+    return make_response(jsonify(city.to_dict()))
 
 
 @app_views.route('cities/<city_id>', methods=['DELETE'], strict_slashes=False)
 def Del_city(city_id=None):
-    """Get state object based on ID"""
+    """Delete city object based on ID"""
     city = storage.get(City, city_id)
     if city is None:
         abort(404, 'Not found')
@@ -44,7 +44,10 @@ def Del_city(city_id=None):
 @app_views.route('/states/<state_id>/cities', methods=['POST'],
                  strict_slashes=False)
 def post_cities_by_state(state_id=None):
-    """Get state object"""
+    """Create city object"""
+    state = storage.get(State, state_id)
+    if not state:
+        abort(404, 'Not found')
     req_json = request.get_json()
     if req_json is None:
         abort(400, 'Not a JSON')
@@ -58,7 +61,7 @@ def post_cities_by_state(state_id=None):
 
 @app_views.route('cities/<city_id>', methods=['PUT'], strict_slashes=False)
 def put_city(city_id=None):
-    """Get state object based on ID"""
+    """Update city object based on ID"""
     city = storage.get(City, city_id)
     if city is None:
         abort(404, 'Not found')
@@ -71,5 +74,4 @@ def put_city(city_id=None):
             setattr(city, key, value)
 
     storage.save()
-
     return make_response(jsonify(city.to_dict()), 200)
