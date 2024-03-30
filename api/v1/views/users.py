@@ -45,7 +45,7 @@ def get_user_by_id(user_id=None):
     """
     user = storage.get(User, user_id)
     if user is None:
-        abort(404, 'Not a JSON')
+        abort(404, 'Not Found')
 
     if request.method == 'GET':
         return jsonify(user.to_dict())
