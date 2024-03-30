@@ -1,13 +1,13 @@
 #!/usr/bin/python3
 """
-users view
+Users class
 """
-from flask import jsonify, request, abort
 from api.v1.views import app_views
+from flask import abort, jsonify, make_response, request
 from models import storage
-from models.state import State
-from models.city import City
 from models.amenity import Amenity
+from models.city import City
+from models.state import State
 from models.user import User
 
 
@@ -22,7 +22,11 @@ def get_user():
         return jsonify(all_user)
 
     if request.method == 'POST':
-        req_json = request.get_json()
+        try:
+            req_json = request.get_json()
+        except Exception as e:
+            return abort(400, 'Missing name')
+        # req_json = request.get_json()
         if req_json is None:
             abort(400, 'Not a JSON')
         if req_json.get('email') is None:
@@ -31,7 +35,7 @@ def get_user():
             abort(400, 'Missing password')
         new_obj = User(**req_json)
         new_obj.save()
-        return jsonify(new_obj.to_dict()), 201
+        return make_response(jsonify(new_obj.to_dict()), 201)
 
 
 @app_views.route('/users/<user_id>', methods=['GET', 'DELETE', 'PUT'])
@@ -41,7 +45,7 @@ def get_user_by_id(user_id=None):
     """
     user = storage.get(User, user_id)
     if user is None:
-        abort(404, 'Not found')
+        abort(404, 'Not a JSON')
 
     if request.method == 'GET':
         return jsonify(user.to_dict())
@@ -49,7 +53,7 @@ def get_user_by_id(user_id=None):
     if request.method == 'DELETE':
         storage.delete(user)
         storage.save()
-        return jsonify({}), 200
+        return make_response(jsonify({}), 200)
 
     if request.method == 'PUT':
         req_json = request.get_json()
@@ -61,4 +65,4 @@ def get_user_by_id(user_id=None):
                 setattr(user, key, value)
 
         storage.save()
-        return jsonify(user.to_dict()), 200
+        return make_response(jsonify(user.to_dict()), 200)
