@@ -2,12 +2,12 @@
 """
 State view
 """
-from flask import jsonify, request, abort
 from api.v1.views import app_views
+from flask import abort, jsonify, make_response, request
 from models import storage
+from models.amenity import Amenity
 from models.state import State
 from models.city import City
-from models.amenity import Amenity
 
 
 @app_views.route('/amenities', methods=['GET', 'POST'])
@@ -21,14 +21,18 @@ def get_amenity():
         return jsonify(all_amenity)
 
     if request.method == 'POST':
-        req_json = request.get_json()
+        try:
+            req_json = request.get_json()
+        except Exception as e:
+            return abort(400, 'Missing name')
+        # req_json = request.get_json()
         if req_json is None:
             abort(400, 'Not a JSON')
         if req_json.get('name') is None:
             abort(400, 'Missing name')
         new_object = Amenity(**req_json)
         new_object.save()
-        return jsonify(new_object.to_dict()), 201
+        return make_response(jsonify(new_object.to_dict()), 201)
 
 
 @app_views.route('/amenities/<amenity_id>', methods=['GET', 'DELETE', 'PUT'])
@@ -46,7 +50,7 @@ def get_amenity_by_id(amenity_id=None):
     if request.method == 'DELETE':
         storage.delete(amenity)
         storage.save()
-        return jsonify({}), 200
+        return make_response(jsonify({}), 200)
 
     if request.method == 'PUT':
         req_json = request.get_json()
@@ -58,4 +62,4 @@ def get_amenity_by_id(amenity_id=None):
                 setattr(amenity, key, value)
 
         storage.save()
-        return jsonify(amenity.to_dict()), 200
+        return make_response(jsonify(amenity.to_dict()), 200)
