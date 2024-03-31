@@ -1,11 +1,12 @@
 #!/usr/bin/python3
 """
-State view
+Place class
 """
 from api.v1.views import app_views
-from flask import jsonify, request, abort
+from flask import abort, jsonify, make_response, request
 from models import storage
 from models.city import City
+from models.place import Place
 from models.state import State
 from models.user import User
 
@@ -40,7 +41,7 @@ def Del_place(place_id=None):
     else:
         storage.delete(place)
         storage.save()
-        return jsonify({}), 200
+        return make_response(jsonify({}), 200)
 
 
 @app_views.route('/cities/<city_id>/places', methods=['POST'],
@@ -64,7 +65,7 @@ def post_cities_by_places(city_id=None):
     new_place = Place(**req_json)
     new_place.save()
 
-    return jsonify(new_place.to_dict()), 201
+    return make_response(jsonify(new_place.to_dict()), 201)
 
 
 @app_views.route('/places/<place_id>', methods=['PUT'], strict_slashes=False)
@@ -89,4 +90,4 @@ def put_place(place_id):
 
     storage.save()
 
-    return jsonify(place.to_dict()), 200
+    return make_response(jsonify(place.to_dict()), 200)
