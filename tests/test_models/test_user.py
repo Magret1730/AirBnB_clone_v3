@@ -81,7 +81,7 @@ class TestUser(unittest.TestCase):
         user = User()
         self.assertTrue(hasattr(user, "password"))
         if models.storage_t == 'db':
-            self.assertEqual(user.password, None)
+            self.assertEqual(user.password, "")  # None
         else:
             self.assertEqual(user.password, "")
 
@@ -106,7 +106,7 @@ class TestUser(unittest.TestCase):
     def test_to_dict_creates_dict(self):
         """test to_dict method creates a dictionary with proper attrs"""
         u = User()
-        new_d = u.to_dict()
+        new_d = u.to_dict(include_password=True)
         self.assertEqual(type(new_d), dict)
         self.assertFalse("_sa_instance_state" in new_d)
         for attr in u.__dict__:

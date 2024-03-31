@@ -68,6 +68,44 @@ test_db_storage.py'])
                             "{:s} method needs a docstring".format(func[0]))
 
 
+class TestDBStorageGetCount(unittest.TestCase):
+    """Tests for get and count methods of the DBStorage class."""
+    def test_get_method(self):
+        """Get method test"""
+        # Create initial state objects for testing
+        new_state1 = State(name="California")
+        new_state2 = State(name="New York")
+        models.storage.new(new_state1)
+        models.storage.new(new_state2)
+        models.storage.save()
+
+        # Retrieve the first state object if available
+        state = None
+        states = list(models.storage.all("State").values())
+        if states:
+            first_state = states[0]
+            first_state_id = first_state.id  # [0]
+            state = models.storage.get(State, first_state_id)
+            self.assertIsNotNone(state)
+        if state:
+            self.assertEqual(state.id, first_state_id)
+        # Test for non-existent id
+        self.assertIsNone(models.storage.get(State, "8888888"))
+
+    def test_count_method(self):
+        """Count method test """
+        previous_count = models.storage.count()
+        new_state = State(name="Test_State")
+        models.storage.new(new_state)
+        models.storage.save()
+        self.assertEqual(models.storage.count(), previous_count + 1)
+        # Test count with class name
+        self.assertLessEqual(models.storage.count(State), previous_count + 1)
+        # Cleanup
+        models.storage.delete(new_state)
+        models.storage.save()
+
+
 class TestFileStorage(unittest.TestCase):
     """Test the FileStorage class"""
     @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
@@ -78,11 +116,50 @@ class TestFileStorage(unittest.TestCase):
     @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
     def test_all_no_class(self):
         """Test that all returns all rows when no class is passed"""
+        # Create some objects in the database
+        state1 = State(name="State 1")
+        state2 = State(name="State 2")
+        models.storage.new(state1)
+        models.storage.new(state2)
+        models.storage.save()
+
+        # Test all method without passing a class
+        all_objects = models.storage.all()
+
+        # Assert that all objects are returned
+        self.assertIn(state1, all_objects.values())
+        self.assertIn(state2, all_objects.values())
 
     @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
     def test_new(self):
         """test that new adds an object to the database"""
+        # Create a new object and add it to the database
+        state = State(name="New State")
+        models.storage.new(state)
+        models.storage.save()
+
+        # Retrieve the object from the database
+        retrieved_state = models.storage.get(State, state.id)
+
+        # Assert that the retrieved object is not None
+        self.assertIsNotNone(retrieved_state)
+        # Assert that the retrieved object matches the added object
+        self.assertEqual(state, retrieved_state)
 
     @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
     def test_save(self):
         """Test that save properly saves objects to file.json"""
+        # Create a new object and add it to the database
+        state = State(name="State")
+        models.storage.new(state)
+        models.storage.save()
+
+        # Modify the object's attributes
+        state.name = "Modified State"
+        models.storage.save()
+
+        # Retrieve the object from the database
+        retrieved_state = models.storage.get(State, state.id)
+
+        # Assert that the retrieved object matches the modified object
+        self.assertEqual(state.name, retrieved_state.name)

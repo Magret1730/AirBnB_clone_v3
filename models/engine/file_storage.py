@@ -85,7 +85,7 @@ class FileStorage:
                 name, _ = key.split('.')
                 if name == cls.__name__:
                     count += 1
-        return count
+            return count
 
     def close(self):
         """call reload() method for deserializing the JSON file to objects"""
