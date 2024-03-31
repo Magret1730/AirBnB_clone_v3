@@ -3,11 +3,13 @@
 State view
 """
 from api.v1.views import app_views
-from flask import jsonify, request, abort
+from flask import abort, jsonify, make_response, request
 from models import storage
 from models.city import City
 from models.state import State
 from models.user import User
+from models.place import Place
+from models.review import Review
 
 
 @app_views.route('/places/<place_id>/reviews', methods=['GET'],
@@ -40,7 +42,7 @@ def delete_review(review_id=None):
     else:
         storage.delete(review)
         storage.save()
-        return jsonify({}), 200
+        return make_response(jsonify({}), 200)
 
 
 @app_views.route('places/<place_id>/reviews', methods=['POST'],
@@ -67,7 +69,7 @@ def post_reviews_by_places(place_id=None):
     review = Review(place_id=place_id, **req_json)
     review.save()
 
-    return jsonify(review.to_dict()), 201
+    return make_response(jsonify(review.to_dict()), 201)
 
 
 @app_views.route('/reviews/<review_id>', methods=['PUT'], strict_slashes=False)
@@ -88,4 +90,4 @@ def update_review(review_id):
 
     review.save()
 
-    return jsonify(review.to_dict()), 200
+    return make_response(jsonify(review.to_dict()), 200)
