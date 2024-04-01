@@ -3,9 +3,8 @@
 index file
 """
 from api.v1.views import app_views
-from flask import jsonify, make_response
+from flask import jsonify
 from models import storage
-
 
 
 @app_views.route('/status', strict_slashes=False)
@@ -25,4 +24,4 @@ def count_stats():
         "states": storage.count('State'),
         "users": storage.count('User')
     }
-    return make_response(jsonify(stats))
+    return jsonify(stats)
