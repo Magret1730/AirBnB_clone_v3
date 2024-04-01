@@ -19,7 +19,7 @@ def get_user():
     if request.method == 'GET':
         all_user = storage.all(User)
         all_user = [obj.to_dict() for obj in all_user.values()]
-        return jsonify(all_user)
+        return make_response(jsonify(all_user))
 
     if request.method == 'POST':
         try:

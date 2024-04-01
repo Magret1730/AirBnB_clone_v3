@@ -9,6 +9,7 @@ from models.city import City
 from models.place import Place
 from models.state import State
 from models.user import User
+from models.amenity import Amenity
 
 
 @app_views.route('/cities/<city_id>/places', methods=['GET'],
@@ -91,3 +92,65 @@ def put_place(place_id):
     storage.save()
 
     return make_response(jsonify(place.to_dict()), 200)
+
+
+@app_views.route('/places_search', methods=['POST'])
+def places_search():
+    """
+        places search
+    """
+    places_all = [place for place in storage.all(Place).values()]
+
+    # check the request content
+    req_json = request.get_json()
+    if req_json is None:
+        abort(400, 'Not a JSON')
+
+    # get the states and the cities to look from for places
+    states_asked = req_json.get('states')
+    if states_asked and len(states_asked) > 0:
+        all_cities = storage.all(City)
+        cities_by_state = set([city.id for city in all_cities.values()
+                               if city.state_id in states_asked])
+    else:
+        cities_by_state = set()
+
+    # get the cities
+    cities_asked = req_json.get('cities')
+    if cities_asked and len(cities_asked) > 0:
+        cities_asked = set([
+            c_id for c_id in cities_asked if storage.get(City, c_id)])
+        cities_by_state = cities_by_state.union(cities_asked)
+
+    # get the amenities
+    amenity_asked = req_json.get('amenities')
+    if len(cities_by_state) > 0:
+        places_all = (
+            [pla for pla in places_all if pla.city_id in cities_by_state]
+            )
+    elif amenity_asked is None or len(amenities) == 0:
+        return make_response(
+            jsonify([place.to_dict() for place in places_all])
+            )
+
+    # place amenity
+    places_amenities = []
+    if amenity_asked and len(amenity_asked) > 0:
+        amenity_asked = set(
+            [a_id for a_id in amenity_asked if storage.get(Amenity, a_id)]
+            )
+        for pla in places_all:
+            place_amentiy = None
+            if STORAGE_TYPE == 'db' and pla.amenities:
+                place_amentiy = [a.id for a in pla.amenities]
+            elif len(pla.amenities) > 0:
+                place_amentiy = pla.amenities
+            if place_amentiy and (
+                   all([pl in place_amentiy for pl in amenities])
+                   ):
+                places_amenities.append(pla)
+    else:
+        places_amenities = places_all
+    return make_response(
+        jsonify([place.to_dict() for place in places_amenities])
+        )
